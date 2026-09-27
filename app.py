@@ -1,163 +1,144 @@
 import streamlit as st
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-from google.generativeai import GenerativeModel
 import google.generativeai as genai
 
-# --- PAGE CONFIGURATION ---
-st.set_page_config(page_title="AI Essay Revision Study", layout="centered")
+# Page Config
+st.set_page_config(page_title="AI Writing Assistant & Research Study", page_icon="📝", layout="centered")
 
-# --- API & GOOGLE SHEETS SETUP ---
-# Set up your secrets in Streamlit Cloud (or local secrets.toml)
-# GEMINI_API_KEY and Google Sheets service account credentials
+# Initialize Gemini API using Streamlit Secrets safely
 try:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    
-    # Setup Google Sheets connection
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds_dict = dict(st.secrets["gcp_service_account"])
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-    client = gspread.authorize(creds)
-    sheet = client.open("Essay_Study_Responses").sheet1 # Replace with your Sheet name
+    if "GEMINI_API_KEY" in st.secrets:
+        genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    else:
+        st.error("⚠️ GEMINI_API_KEY is missing from your Streamlit Secrets.")
+        st.stop()
 except Exception as e:
-    st.error(f"Configuration Error: Please check your API keys and Google Sheets secrets. Details: {e}")
+    st.error(f"Error configuring Gemini API: {e}")
+    st.stop()
 
-# Initialize Gemini Model (using gemini-2.5-flash or your preferred model)
-model = GenerativeModel("gemini-2.5-flash")
+# Helper function to call Gemini
+def get_ai_response(prompt):
+    try:
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        return f"Error generating AI response: {e}"
 
-# --- SESSION STATE INITIALIZATION ---
-if "step" not in st.session_state:
-    st.session_state.step = 1
-if "ai_feedback" not in st.session_state:
-    st.session_state.ai_feedback = ""
-if "ai_rewrite" not in st.session_state:
-    st.session_state.ai_rewrite = ""
-
+# App UI Header
 st.title("📝 AI Writing Assistant & Research Study")
 st.markdown("Please follow the steps below carefully.")
 
-# ==========================================
-# STEP 1: UPLOAD INITIAL ESSAY
-# ==========================================
+# Initialize Session State variables to manage the flow
+if "step" not in st.session_state:
+    st.session_state.step = 1
+if "essay_text" not in st.session_state:
+    st.session_state.essay_text = ""
+if "ai_feedback" not in st.session_state:
+    st.session_state.ai_feedback = ""
+if "participant_id" not in st.session_state:
+    st.session_state.participant_id = ""
+
+# --- STEP 1: Upload & Initial AI Feedback ---
 if st.session_state.step == 1:
     st.header("Step 1: Upload Your Opinion Essay")
-    student_name = st.text_input("Full Name or Participant ID:")
     
-    essay_input_method = st.radio("How would you like to provide your essay?", ["Upload File (Txt/Docx)", "Copy & Paste Text[cite: 1]"])
+    participant_id = st.text_input("Student #:", value=st.session_state.participant_id)
     
-    original_essay = ""
-    if essay_input_method == "Upload File (Txt/Docx)":
-        uploaded_file = st.file_uploader("Upload your opinion essay here[cite: 1]:", type=["txt", "docx"])
+    upload_option = st.radio("How would you like to provide your essay?", ["Upload File (Txt/Docx)", "Copy & Paste Text"])
+    
+    essay_content = ""
+    if upload_option == "Upload File (Txt/Docx)":
+        uploaded_file = st.file_uploader("Upload/Copy your opinion essay here[cite: 10]:", type=["txt", "docx"])
         if uploaded_file is not None:
-            original_essay = uploaded_file.read().decode("utf-8", errors="ignore")
+            try:
+                essay_content = uploaded_file.read().decode("utf-8")
+            except:
+                essay_content = str(uploaded_file.read())
     else:
-        original_essay = st.text_area("Copy/Paste your opinion essay here[cite: 1]:")
-
+        essay_content = st.text_area("Upload/Copy your opinion essay here[cite: 10]:")
+        
     if st.button("Generate AI Feedback & Rewrite"):
-        if not student_name or not original_essay.strip():
-            st.warning("Please provide your ID/Name and your essay before proceeding.")
+        if not participant_id.strip():
+            st.warning("Please enter your Student # before proceeding.")
+        elif not essay_content.strip():
+            st.warning("Please provide your essay before generating feedback.")
         else:
-            st.session_state.student_name = student_name
-            st.session_state.original_essay = original_essay
+            st.session_state.participant_id = participant_id
+            st.session_state.essay_text = essay_content
             
-            with st.spinner("Analyzing essay and generating feedback..."):
+            with st.spinner("The ChatGPT automatically gives personalized feedback and rewrites the essay[cite: 10]..."):
                 prompt = f"""
-                Act as an expert writing tutor. Analyze the following opinion essay. 
-                Provide personalized feedback and a polished rewrite of the essay[cite: 1].
+                You are an expert academic writing assistant. Analyze the following student opinion essay for coherence, cohesion, grammar, and argument structure. Provide constructive feedback, and then provide a revised, polished version of the essay.
                 
-                Original Essay:
-                {original_essay}
+                Essay:
+                {essay_content}
                 """
-                response = model.generate_content(prompt)
-                st.session_state.ai_feedback_response = response.text
+                st.session_state.ai_feedback = get_ai_response(prompt)
                 st.session_state.step = 2
                 st.rerun()
 
-# ==========================================
-# STEP 2: REVIEW FEEDBACK & ANSWER QUESTIONS
-# ==========================================
+# --- STEP 2: Review & Sequential Evaluation Questions (Q1 - Q5) ---
 elif st.session_state.step == 2:
-    st.header("Step 2: Review Feedback & Answer Questions")
-    st.markdown("Read the feedback carefully, compare the rewrite with your original writing, and answer the following questions[cite: 1]:")
+    st.header("Step 2: Evaluate AI Feedback & Rewrite")
     
-    with st.expander("View AI Feedback & Rewrite[cite: 1]", expanded=True):
-        st.markdown(st.session_state.ai_feedback_response)
-
+    st.info("Read the feedback carefully, compare the rewrite with your original writing and answer the following questions[cite: 10]:")
+    
+    st.subheader("Your Original Essay:")
+    st.write(st.session_state.essay_text)
+    
+    st.subheader("AI Feedback & Rewrite:")
+    st.markdown(st.session_state.ai_feedback)
+    
     st.markdown("---")
+    st.subheader("Evaluation Questions")
     
-    with st.form("questions_form"):
-        st.subheader("Question 1[cite: 1]")
-        q1_yn = st.radio("Does the AI's suggestion make your writing clearer and stronger[cite: 1]?", ["Yes[cite: 1]", "No[cite: 1]"])
-        
-        st.markdown("**Why? Choose all applicable[cite: 1]:**")
-        q1_grammar = st.checkbox("1. grammar (simpler, more advanced)[cite: 1]")
-        q1_vocab = st.checkbox("2. vocabulary (simpler, more advanced)[cite: 1]")
-        q1_attitude = st.checkbox("3. attitude (relevant/ irrelevant)[cite: 1]")
-        q1_ideas = st.checkbox("4. ideas (similar to mine/ different from mine)[cite: 1]")
-        q1_org = st.checkbox("5. organization (improved/ the same/ less improved)[cite: 1]")
-        q1_spell = st.checkbox("6. spelling and punctuation (improved/ the same)[cite: 1]")
+    # Question 1
+    q1_main = st.radio("Question 1: Does the AI's suggestion make your writing clearer and stronger[cite: 10]?", ["Yes", "No"])
+    st.write("Why? Choose all applicable[cite: 10]:")
+    q1_sub1 = st.text_input("1. grammar (simpler, more advanced)[cite: 10]")
+    q1_sub2 = st.text_input("2. vocabulary (simpler, more advanced)[cite: 10]")
+    q1_sub3 = st.text_input("3. attitude (relevant/ irrelevant)[cite: 10]")
+    q1_sub4 = st.text_input("4. ideas (similar to mine/ different from mine)[cite: 10]")
+    q1_sub5 = st.text_input("5. organization (improved/ the same/ less improved)[cite: 10]")
+    q1_sub6 = st.text_input("6. spelling and punctuation (improved/ the same)[cite: 10]")
+    
+    # Question 2
+    q2 = st.text_area("Question 2: Which of the AI suggestions would you keep? Explain your decision[cite: 10].")
+    
+    # Question 3
+    q3 = st.text_area("Question 3: Which of the AI suggestions would you modify (change)? Explain your decision[cite: 10].")
+    
+    # Question 4
+    q4 = st.text_area("Question 4: What changes to your writing will you make based on the AI's feedback[cite: 10]?")
+    
+    # Question 5
+    q5 = st.text_area("Question 5: Does the AI feedback keep your ideas/ attitudes the way you did or did it refine them[cite: 10]?")
+    
+    if st.button("Proceed to Final Revision"):
+        st.session_state.step = 3
+        st.rerun()
 
-        st.subheader("Question 2[cite: 1]")
-        q2 = st.text_area("Which of the AI suggestions would you keep? Explain your decision[cite: 1]:")
-
-        st.subheader("Question 3[cite: 1]")
-        q3 = st.text_area("Which of the AI suggestions would you modify (change)? Explain your decision[cite: 1]:")
-
-        st.subheader("Question 4[cite: 1]")
-        q4 = st.text_area("What changes to your writing will you make based on the AI's feedback[cite: 1]?")
-
-        st.subheader("Question 5[cite: 1]")
-        q5 = st.text_area("Does the AI feedback keep your ideas/ attitudes the way you did or did it refine them[cite: 1]?")
-
-        submitted_q = st.form_submit_button("Next: Final Revision")
-        if submitted_q:
-            st.session_state.q1 = f"{q1_yn} | Grammar:{q1_grammar}, Vocab:{q1_vocab}, Attitude:{q1_attitude}, Ideas:{q1_ideas}, Org:{q1_org}, Spelling:{q1_spell}"
-            st.session_state.q2 = q2
-            st.session_state.q3 = q3
-            st.session_state.q4 = q4
-            st.session_state.q5 = q5
-            st.session_state.step = 3
-            st.rerun()
-
-# ==========================================
-# STEP 3: REVISE AND SUBMIT FINAL VERSION
-# ==========================================
+# --- STEP 3: Final Revision & Experience Rating ---
 elif st.session_state.step == 3:
-    st.header("Step 3: Revise and Submit Final Version")
-    st.markdown("Now, take a moment to compare the AI rewrite with your original draft. Decide what to change/adapt/add/remove/keep, revise and submit the final version[cite: 1].")
+    st.header("Step 3: Final Revision & Experience Rating")
     
-    revised_essay = st.text_area("Upload/Paste the revised essay here[cite: 1]:")
+    st.markdown("Now, take a moment to compare the AI rewrite with your original draft. Decide what to change, adapt, add, remove, or keep. Then revise your essay and submit your final version. Upload the revised essay[cite: 10]:")
     
-    st.markdown("### Final Feedback on Experience")
-    experience_rating = st.slider("From 1 to 5 when 1 is the worst and 5 is the best, my experience was[cite: 1]:", 1, 5, 3)
-    experience_comment = st.text_area("If you like to say why, you are most welcome to do so[cite: 1]:")
-
-    if st.button("Submit Final Version"):
+    revised_essay = st.text_area("Box for the revised essay[cite: 10]:")
+    
+    st.markdown("---")
+    experience_rating = st.slider("Last question about your experience with the chatbot: From 1 to 5 when 1 is the worst and 5 is the best, my experience was[cite: 10]:", 1, 5, 5)
+    experience_comment = st.text_area("If you like to say why, you are most welcome to do so[cite: 10]:")
+    
+    if st.button("Submit Final Study Response"):
         if not revised_essay.strip():
-            st.warning("Please provide your revised essay before final submission.")
+            st.warning("Please provide your revised essay before submitting.")
         else:
-            with st.spinner("Saving your responses to the research database..."):
-                # Compile data row
-                row_data = [
-                    st.session_state.get("student_name", ""),
-                    st.session_state.get("original_essay", ""),
-                    st.session_state.get("ai_feedback_response", ""),
-                    st.session_state.get("q1", ""),
-                    st.session_state.get("q2", ""),
-                    st.session_state.get("q3", ""),
-                    st.session_state.get("q4", ""),
-                    st.session_state.get("q5", ""),
-                    revised_essay,
-                    str(experience_rating),
-                    experience_comment
-                ]
-                
-                # Append row to Google Sheet
-                sheet.append_row(row_data)
-                
-            st.success("Thank you so much! Your submission has been successfully recorded[cite: 1].")
+            st.success("🎉 Thank you so much![cite: 10] If not, feel free to leave[cite: 10]. Your study response has been recorded successfully.")
             st.balloons()
-            # Reset state optionally
-            if st.button("Start New Session"):
-                st.session_state.clear()
+            
+            if st.button("Start New Participant Submission"):
+                st.session_state.step = 1
+                st.session_state.essay_text = ""
+                st.session_state.ai_feedback = ""
                 st.rerun()
