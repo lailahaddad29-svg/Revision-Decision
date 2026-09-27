@@ -18,7 +18,7 @@ except Exception as e:
 # Helper function to call Gemini
 def get_ai_response(prompt):
     try:
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        model = genai.GenerativeModel("gemini-3.8-flash")
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
