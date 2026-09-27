@@ -77,8 +77,7 @@ You are an English language writing assistant. Please review the following stude
 Provide your response in two clear parts:
 1. Feedback: Give brief, concise feedback (2-3 short bullet points focusing on grammar, vocabulary, or mechanics). Do NOT mention coherence or cohesion.
 2. Rewrite: Provide a revised version of the essay that maintains a similar word count to the original draft.
-"""
-                
+"""                
                 Essay:
                 {essay_content}
                 """
