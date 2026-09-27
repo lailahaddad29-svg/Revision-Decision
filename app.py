@@ -69,6 +69,7 @@ if st.session_state.step == 1:
             with st.spinner("The ChatGPT automatically gives personalized feedback and rewrites the essay[cite: 10]..."):
                 prompt = f"""
                 ai_prompt = f"""
+ai_prompt = f"""
 You are an English language writing assistant. Please review the following student essay draft:
 
 "{original_essay}"
