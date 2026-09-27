@@ -2,7 +2,7 @@ import streamlit as st
 import google.generativeai as genai
 
 # Page Config
-st.set_page_config(page_title="AI Writing Assistant & Research Study", page_icon="📝", layout="centered")
+st.set_page_config(page_title="AI Writing Assistant", page_icon="📝", layout="centered")
 
 # Initialize Gemini API using Streamlit Secrets safely
 try:
@@ -25,7 +25,7 @@ def get_ai_response(prompt):
         return f"Error generating AI response: {e}"
 
 # App UI Header
-st.title("📝 AI Writing Assistant & Research Study")
+st.title("📝 AI Writing Assistant")
 st.markdown("Please follow the steps below carefully.")
 
 # Initialize Session State variables to manage the flow
@@ -68,7 +68,15 @@ if st.session_state.step == 1:
             
             with st.spinner("The ChatGPT automatically gives personalized feedback and rewrites the essay[cite: 10]..."):
                 prompt = f"""
-                You are an expert academic writing assistant. Analyze the following student opinion essay for coherence, cohesion, grammar, and argument structure. Provide constructive feedback, and then provide a revised, polished version of the essay.
+                ai_prompt = f"""
+You are an English language writing assistant. Please review the following student essay draft:
+
+"{original_essay}"
+
+Provide your response in two clear parts:
+1. Feedback: Give brief, concise feedback (2-3 short bullet points focusing on grammar, vocabulary, or mechanics). Do NOT mention coherence or cohesion.
+2. Rewrite: Provide a revised version of the essay that maintains a similar word count to the original draft.
+"""
                 
                 Essay:
                 {essay_content}
@@ -134,7 +142,7 @@ elif st.session_state.step == 3:
         if not revised_essay.strip():
             st.warning("Please provide your revised essay before submitting.")
         else:
-            st.success("🎉 Thank you so much![cite: 10] If not, feel free to leave[cite: 10]. Your study response has been recorded successfully.")
+            st.success("🎉 Thank you so much![cite: 10]. Your study response has been submitted successfully.")
             st.balloons()
             
             if st.button("Start New Participant Submission"):
