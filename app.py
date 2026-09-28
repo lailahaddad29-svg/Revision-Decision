@@ -28,10 +28,10 @@ def get_ai_response(original_essay):
         return f"Error generating AI response: {e}"
 
 # App Title
-st.title("AI Writing Assistant")
+st.title("AI writing assistant")
 
-# Step 1: Student Number and Essay Input (with File Upload option)
-student_id = st.text_input("Student #:")
+# Step 1: Student Number and Essay Input
+student_id = st.text_input("Student # / ID:")
 
 upload_option = st.radio("Choose how to input your essay:", ["Paste text", "Upload file"])
 
@@ -48,7 +48,8 @@ else:
             doc = docx.Document(uploaded_file)
             original_essay = "\n".join([para.text for para in doc.paragraphs])
 
-if student_id and original_essay:
+# Button appears directly under the essay input section
+if original_essay:
     if st.button("Generate AI Feedback & Rewrite"):
         with st.spinner("Generating personalized feedback and rewrite..."):
             ai_output = get_ai_response(original_essay)
@@ -78,7 +79,7 @@ if "ai_output" in st.session_state:
     q1_2_choice = st.radio("Vocabulary direction:", ["simpler", "more advanced"], horizontal=True) if q1_2_check else None
     
     q1_3_check = st.checkbox("3. attitude")
-    q1_3_choice = st.radio("Attitude type:", ["relevant", "irrelevant"], horizontal=True) if q1_3_check else None
+    q1_3_choice = st.radio("Attitude type:", ["similar to mine", "different from mine"], horizontal=True) if q1_3_check else None
     
     q1_4_check = st.checkbox("4. ideas")
     q1_4_choice = st.radio("Ideas comparison:", ["similar to mine", "different from mine"], horizontal=True) if q1_4_check else None
@@ -112,8 +113,7 @@ if "ai_output" in st.session_state:
     experience_comment = st.text_input("If you’d like to say why, you’re most welcome to do so; otherwise, feel free to submit:")
     
     if st.button("Submit Final Version"):
-        # Package data to send to Formspree
-        formspree_url = "https://formspree.io/f/mnpnokpq"[cite: 4]
+        formspree_url = "https://formspree.io/f/mnpnokpq"
         
         payload = {
             "Student_ID": student_id,
