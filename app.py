@@ -1,5 +1,6 @@
 import streamlit as st
 import google.generativeai as genai
+import requests
 
 # Configure Gemini API using Streamlit Secrets
 api_key = st.secrets.get("GEMINI_API_KEY")
@@ -88,10 +89,10 @@ if "ai_output" in st.session_state:
     q1_6_check = st.checkbox("6. spelling and punctuation")
     q1_6_choice = st.radio("Spelling and punctuation effect:", ["improved", "the same"], horizontal=True) if q1_6_check else None
     
-    # Question 2 (Updated wording)
+    # Question 2
     q2 = st.text_area("Question 2: Which of the AI suggestions would you keep (from either the feedback or the rewrite)? Explain your decision if you'd like.")
     
-    # Question 3 (Updated wording)
+    # Question 3
     q3 = st.text_area("Question 3: Which of the suggestions would you reject (from either the feedback or the rewrite)? Explain your decision if you'd like.")
     
     # Question 4
@@ -111,5 +112,35 @@ if "ai_output" in st.session_state:
     experience_comment = st.text_input("If you’d like to say why, you’re most welcome to do so; otherwise, feel free to submit:")
     
     if st.button("Submit Final Version"):
-        st.success("Thank you so much!")
-        st.balloons()
+        # Package data to send to Formspree
+        formspree_url = "https://formspree.io/f/mnpnokpq"[cite: 4]
+        
+        payload = {
+            "Student_ID": student_id,
+            "Original_Essay": original_essay,
+            "AI_Output": st.session_state["ai_output"],
+            "Q1_Clearer_Stronger": q1,
+            "Q1_Grammar": f"{q1_1_check} ({q1_1_choice})",
+            "Q1_Vocabulary": f"{q1_2_check} ({q1_2_choice})",
+            "Q1_Attitude": f"{q1_3_check} ({q1_3_choice})",
+            "Q1_Ideas": f"{q1_4_check} ({q1_4_choice})",
+            "Q1_Organization": f"{q1_5_check} ({q1_5_choice})",
+            "Q1_Spelling_Punctuation": f"{q1_6_check} ({q1_6_choice})",
+            "Q2_Keep": q2,
+            "Q3_Reject": q3,
+            "Q4_Changes": q4,
+            "Q5_Ideas_Refined": q5,
+            "Revised_Essay": revised_essay,
+            "Experience_Rating": experience_rating,
+            "Experience_Comment": experience_comment
+        }
+        
+        try:
+            response = requests.post(formspree_url, data=payload)
+            if response.status_code == 200:
+                st.success("Thank you so much!")
+                st.balloons()
+            else:
+                st.error("There was an error submitting your response. Please try again.")
+        except Exception as e:
+            st.error(f"Connection error: {e}")
