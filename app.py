@@ -30,7 +30,7 @@ def get_ai_response(original_essay):
 st.title("AI writing assistant")
 
 # Step 1: Student Number and Essay Input (with File Upload option)
-student_id = st.text_input("Student # / ID:")
+student_id = st.text_input("Student #")
 
 upload_option = st.radio("Choose how to input your essay:", ["Paste text", "Upload file"])
 
