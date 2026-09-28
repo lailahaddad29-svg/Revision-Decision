@@ -27,10 +27,10 @@ def get_ai_response(original_essay):
         return f"Error generating AI response: {e}"
 
 # App Title
-st.title("AI Writing Assistant")
+st.title("AI writing assistant")
 
 # Step 1: Student Number and Essay Input (with File Upload option)
-student_id = st.text_input("Student #")
+student_id = st.text_input("Student # / ID:")
 
 upload_option = st.radio("Choose how to input your essay:", ["Paste text", "Upload file"])
 
@@ -88,11 +88,11 @@ if "ai_output" in st.session_state:
     q1_6_check = st.checkbox("6. spelling and punctuation")
     q1_6_choice = st.radio("Spelling and punctuation effect:", ["improved", "the same"], horizontal=True) if q1_6_check else None
     
-    # Question 2
-    q2 = st.text_area("Question 2: Which of the AI suggestions would you keep? Explain your decision.")
+    # Question 2 (Updated wording)
+    q2 = st.text_area("Question 2: Which of the AI suggestions would you keep (from either the feedback or the rewrite)? Explain your decision if you'd like.")
     
-    # Question 3
-    q3 = st.text_area("Question 3: Which of the AI suggestions would you reject? Explain your decision.")
+    # Question 3 (Updated wording)
+    q3 = st.text_area("Question 3: Which of the suggestions would you reject (from either the feedback or the rewrite)? Explain your decision if you'd like.")
     
     # Question 4
     q4 = st.text_area("Question 4: What changes to your writing will you make based on the AI's feedback?")
@@ -103,7 +103,7 @@ if "ai_output" in st.session_state:
     st.markdown("---")
     st.markdown("Now, take a moment to reread the feedback, compare the AI rewrite with your original draft. Decide what to change, adapt, add, remove, or keep. Then revise your essay and submit your final version.")
     
-    # Final revised essay text area only (upload removed)
+    # Final revised essay text area only
     revised_essay = st.text_area("Write/paste your revised essay here:")
     
     st.markdown("---")
