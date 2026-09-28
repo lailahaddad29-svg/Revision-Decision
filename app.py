@@ -28,10 +28,10 @@ def get_ai_response(original_essay):
         return f"Error generating AI response: {e}"
 
 # App Title
-st.title("AI Writing Assistant")
+st.title("AI writing assistant")
 
 # Step 1: Student Number and Essay Input
-student_id = st.text_input("Student #:")
+student_id = st.text_input("Student # / ID:")
 
 upload_option = st.radio("Choose how to input your essay:", ["Paste text", "Upload file"])
 
