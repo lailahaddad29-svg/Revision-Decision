@@ -37,7 +37,7 @@ upload_option = st.radio("Choose how to input your essay:", ["Paste text", "Uplo
 
 original_essay = ""
 if upload_option == "Paste text":
-    original_essay = st.text_area("Upload/Copy your opinion essay here (between 50 and 180 words): *")
+    original_essay = st.text_area("Upload/Copy your opinion essay here (between 50 and 200 words): *")
 else:
     uploaded_file = st.file_uploader("Upload your essay document (TXT or DOCX) *: ", type=["txt", "docx"])
     if uploaded_file is not None:
