@@ -48,13 +48,13 @@ else:
             doc = docx.Document(uploaded_file)
             original_essay = "\n".join([para.text for para in doc.paragraphs])
 
-# Word count validation for original essay
+# Word count validation for original essay (50 - 200 words)
 original_word_count = len(original_essay.split()) if original_essay else 0
 
 # Button appears directly under the essay input section
 if original_essay:
-    if original_word_count < 50 or original_word_count > 180:
-        st.warning(f"Your essay has {original_word_count} words. Please ensure it is between 50 and 180 words before generating feedback.")
+    if original_word_count < 50 or original_word_count > 200:
+        st.warning(f"Your essay has {original_word_count} words. Please ensure it is between 50 and 200 words before generating feedback.")
     else:
         if st.button("Generate AI Feedback & Rewrite"):
             with st.spinner("Generating personalized feedback and rewrite..."):
@@ -112,12 +112,12 @@ if "ai_output" in st.session_state:
     st.markdown("---")
     st.markdown("Now, take a moment to reread the feedback, compare the AI rewrite with your original draft. Decide what to change, adapt, add, remove, or keep. Then revise your essay and submit your final version.")
     
-    # Final revised essay text area with word count constraint
-    revised_essay = st.text_area("Write/paste your revised essay here (between 50 and 180 words): *")
+    # Final revised essay text area with updated word count constraint (50 - 200 words)
+    revised_essay = st.text_area("Write/paste your revised essay here (between 50 and 200 words): *")
     revised_word_count = len(revised_essay.split()) if revised_essay else 0
     
-    if revised_essay and (revised_word_count < 50 or revised_word_count > 180):
-        st.warning(f"Your revised essay has {revised_word_count} words. Please ensure it is between 50 and 180 words.")
+    if revised_essay and (revised_word_count < 50 or revised_word_count > 200):
+        st.warning(f"Your revised essay has {revised_word_count} words. Please ensure it is between 50 and 200 words.")
 
     st.markdown("---")
     experience_rating = st.slider("From 1 to 5 when 1 is the worst and 5 is the best, my experience was:", 1, 5, 3)
@@ -130,8 +130,8 @@ if "ai_output" in st.session_state:
             missing_fields.append("Student #")
         if not original_essay.strip():
             missing_fields.append("Original Essay")
-        elif original_word_count < 50 or original_word_count > 180:
-            missing_fields.append("Original Essay word count (must be 50-180 words)")
+        elif original_word_count < 50 or original_word_count > 200:
+            missing_fields.append("Original Essay word count (must be 50-200 words)")
         if "ai_output" not in st.session_state or not st.session_state["ai_output"].strip():
             missing_fields.append("AI Feedback (Please click 'Generate AI Feedback & Rewrite')")
         if not q2.strip():
@@ -144,8 +144,8 @@ if "ai_output" in st.session_state:
             missing_fields.append("Question 5")
         if not revised_essay.strip():
             missing_fields.append("Revised Essay")
-        elif revised_word_count < 50 or revised_word_count > 180:
-            missing_fields.append("Revised Essay word count (must be 50-180 words)")
+        elif revised_word_count < 50 or revised_word_count > 200:
+            missing_fields.append("Revised Essay word count (must be 50-200 words)")
 
         if missing_fields:
             st.error(f"Please complete the following required fields before submitting: {', '.join(missing_fields)}")
