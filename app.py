@@ -68,7 +68,6 @@ if "ai_output" in st.session_state:
     
     st.markdown("---")
     st.markdown("### Post-Evaluation Questions")
-    st.caption("Note: You may answer Questions 2–5 and comments in your first language (Hebrew or Arabic) if you prefer.")
     
     # Question 1
     q1 = st.radio(
@@ -98,16 +97,16 @@ if "ai_output" in st.session_state:
     q1_6_choice = st.radio("Spelling and punctuation effect:", ["improved", "the same"], horizontal=True) if q1_6_check else None
     
     # Question 2
-    q2 = st.text_area("Question 2: Which of the AI suggestions would you keep (from either the feedback or the rewrite)? * (You can copy-paste from the feedback). Explain your decision if you'd like.")
+    q2 = st.text_area("Question 2: Which of the AI suggestions would you keep (from either the feedback or the rewrite)? * (You can copy-paste from the feedback. You may answer in your first language—Arabic or Hebrew—if you prefer). Explain your decision if you'd like.")
     
     # Question 3
-    q3 = st.text_area("Question 3: Which of the suggestions would you reject (from either the feedback or the rewrite)? * (You can copy-paste from the feedback). Explain your decision if you'd like.")
+    q3 = st.text_area("Question 3: Which of the suggestions would you reject (from either the feedback or the rewrite)? * (You can copy-paste from the feedback. You may answer in your first language—Arabic or Hebrew—if you prefer). Explain your decision if you'd like.")
     
     # Question 4
-    q4 = st.text_area("Question 4: What changes to your writing will you make based on the AI's feedback? * (You can copy-paste from the feedback if needed).")
+    q4 = st.text_area("Question 4: What changes to your writing will you make based on the AI's feedback? * (You can copy-paste from the feedback. You may answer in your first language—Arabic or Hebrew—if you prefer).")
     
     # Question 5
-    q5 = st.text_area("Question 5: Does the AI feedback keep your ideas/ attitudes the way you did or did it refine them? * (You can copy-paste from the feedback if needed).")
+    q5 = st.text_area("Question 5: Does the AI feedback keep your ideas/ attitudes the way you did or did it refine them? * (You can copy-paste from the feedback. You may answer in your first language—Arabic or Hebrew—if you prefer).")
     
     st.markdown("---")
     st.markdown("Now, take a moment to reread the feedback, compare the AI rewrite with your original draft. Decide what to change, adapt, add, remove, or keep. Then revise your essay and submit your final version.")
@@ -121,7 +120,7 @@ if "ai_output" in st.session_state:
 
     st.markdown("---")
     experience_rating = st.slider("From 1 to 5 when 1 is the worst and 5 is the best, my experience was:", 1, 5, 3)
-    experience_comment = st.text_input("If you’d like to say why, you’re most welcome to do so (you may use Hebrew or Arabic); otherwise, feel free to submit (Optional):")
+    experience_comment = st.text_input("If you’d like to say why, you’re most welcome to do so (you may use Arabic or Hebrew); otherwise, feel free to submit (Optional):")
     
     if st.button("Submit Final Version"):
         # Validate mandatory fields
