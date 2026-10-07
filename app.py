@@ -21,7 +21,7 @@ def get_ai_response(original_essay):
         1. Feedback: Give brief, concise, readable feedback in bullet points. Start with positive points and move to points that need improvements. Do NOT mention coherence or cohesion.
         2. Rewrite: Provide a revised version of the essay that maintains a similar word count to the original draft.
         """
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        model = genai.GenerativeModel("gemini-3.8-flash")
         response = model.generate_content(ai_prompt)
         return response.text
     except Exception as e:
