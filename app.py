@@ -58,8 +58,7 @@ if original_essay:
     else:
         if st.button("Generate AI Feedback & Rewrite"):
             with st.spinner("Generating personalized feedback and rewrite..."):
-                ai_output = get_ai_response(original_essay)
-                st.session_state["ai_output"] = ai_output
+                st.session_state["ai_output"] = get_ai_response(original_essay)
 
 # Display AI Feedback & Rewrite if generated
 if "ai_output" in st.session_state:
