@@ -1,6 +1,8 @@
 import streamlit as st
 import google.generativeai as genai
 import requests
+import time
+import difflib
 
 # Configure Gemini API using Streamlit Secrets
 api_key = st.secrets.get("GEMINI_API_KEY")
@@ -8,6 +10,10 @@ if api_key:
     genai.configure(api_key=api_key)
 else:
     st.error("GEMINI_API_KEY is missing from Streamlit Secrets.")
+
+# Track start time when session begins
+if "start_time" not in st.session_state:
+    st.session_state["start_time"] = time.time()
 
 # Helper function to call Gemini with instructions
 def get_ai_response(original_essay):
@@ -69,7 +75,6 @@ if "ai_output" in st.session_state:
     st.markdown("---")
     st.markdown("### Post-Evaluation Questions")
     
-    # Question 1
     q1 = st.radio(
         "Question 1: Does the AI's suggestion make your writing clearer and stronger? *", 
         ["Yes", "No", "Maybe"]
@@ -77,7 +82,6 @@ if "ai_output" in st.session_state:
     
     st.markdown("**Why? Choose all applicable and specify:**")
     
-    # Clickable choices for sub-options
     q1_1_check = st.checkbox("1. grammar")
     q1_1_choice = st.radio("Grammar direction:", ["simpler", "more advanced"], horizontal=True) if q1_1_check else None
     
@@ -96,22 +100,14 @@ if "ai_output" in st.session_state:
     q1_6_check = st.checkbox("6. spelling and punctuation")
     q1_6_choice = st.radio("Spelling and punctuation effect:", ["improved", "the same"], horizontal=True) if q1_6_check else None
     
-    # Question 2
     q2 = st.text_area("Question 2: Which of the AI suggestions would you keep (from either the feedback or the rewrite)? * (You can copy-paste from the feedback. You may answer in your first language—Arabic or Hebrew—if you prefer). Explain your decision if you'd like.")
-    
-    # Question 3
     q3 = st.text_area("Question 3: Which of the suggestions would you reject (from either the feedback or the rewrite)? * (You can copy-paste from the feedback. You may answer in your first language—Arabic or Hebrew—if you prefer). Explain your decision if you'd like.")
-    
-    # Question 4
     q4 = st.text_area("Question 4: What changes to your writing will you make based on the AI's feedback? * (You can copy-paste from the feedback. You may answer in your first language—Arabic or Hebrew—if you prefer).")
-    
-    # Question 5
     q5 = st.text_area("Question 5: Does the AI feedback keep your ideas/ attitudes the way you did or did it refine them? * (You can copy-paste from the feedback. You may answer in your first language—Arabic or Hebrew—if you prefer).")
     
     st.markdown("---")
     st.markdown("Now, take a moment to reread the feedback, compare the AI rewrite with your original draft. Decide what to change, adapt, add, remove, or keep. Then revise your essay and submit your final version.")
     
-    # Final revised essay text area with updated word count constraint (50 - 200 words)
     revised_essay = st.text_area("Write/paste your revised essay here (between 50 and 200 words): *")
     revised_word_count = len(revised_essay.split()) if revised_essay else 0
     
@@ -123,7 +119,6 @@ if "ai_output" in st.session_state:
     experience_comment = st.text_input("If you’d like to say why, you’re most welcome to do so (you may use Arabic or Hebrew); otherwise, feel free to submit (Optional):")
     
     if st.button("Submit Final Version"):
-        # Validate mandatory fields
         missing_fields = []
         if not student_id.strip():
             missing_fields.append("Student #")
@@ -149,6 +144,15 @@ if "ai_output" in st.session_state:
         if missing_fields:
             st.error(f"Please complete the following required fields before submitting: {', '.join(missing_fields)}")
         else:
+            # --- AUTOMATIC REVISION METRICS CALCULATIONS ---
+            total_time_seconds = int(time.time() - st.session_state.get("start_time", time.time()))
+            word_count_difference = revised_word_count - original_word_count
+            
+            # Calculate text similarity ratio (0.0 = completely different, 1.0 = identical)
+            matcher = difflib.SequenceMatcher(None, original_essay, revised_essay)
+            text_similarity_score = round(matcher.ratio(), 2)
+            # -----------------------------------------------
+
             formspree_url = "https://formspree.io/f/mnpnokpq"
             
             payload = {
@@ -167,6 +171,12 @@ if "ai_output" in st.session_state:
                 "Q4_Changes": q4,
                 "Q5_Ideas_Refined": q5,
                 "Revised_Essay": revised_essay,
+                # Automated Research Metrics sent to Formspree:
+                "Revision_Time_Seconds": total_time_seconds,
+                "Original_Word_Count": original_word_count,
+                "Revised_Word_Count": revised_word_count,
+                "Word_Count_Change": word_count_difference,
+                "Text_Similarity_Score": text_similarity_score,
                 "Experience_Rating": experience_rating,
                 "Experience_Comment": experience_comment
             }
